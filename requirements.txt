@@ -1,0 +1,9 @@
+# PromptFight — requirements
+# All stdlib; listed here for explicitness and future extension.
+# The only optional runtime dep is python-dotenv for .env loading.
+
+python-dotenv>=1.0.0
+
+# Test dependencies
+pytest>=8.0.0
+pytest-mock>=3.14.0
