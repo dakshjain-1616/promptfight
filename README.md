@@ -75,9 +75,24 @@ Example output:
 └───────────┴────────────┴────────────┴─────────────┴─────────────┴───────────┘
 ```
 
-### Real model — gpt-4o-mini
+### Real model via OpenRouter (recommended — one key for all models)
+
+OpenRouter gives you access to GPT-5.4 Nano, Claude Sonnet 4.6, Gemini 2.5 Flash, and 200+ other models with a single API key:
 
 ```bash
+export OPENROUTER_API_KEY=sk-or-...
+python -m promptfight \
+  --prompt-a "You are a concise technical writer. Summarize in 2-3 sentences: {input}" \
+  --prompt-b "Summarize this in plain English for a non-technical audience: {input}" \
+  --input "Large language models use transformer architectures with self-attention mechanisms." \
+  --model openai/gpt-5.4-nano,anthropic/claude-sonnet-4-6 \
+  --runs 3
+```
+
+### Direct OpenAI — gpt-4o-mini
+
+```bash
+export OPENAI_API_KEY=sk-...
 python -m promptfight \
   --prompt-a "Summarize the following in one sentence: {input}" \
   --prompt-b "TL;DR (one sentence): {input}" \
@@ -180,19 +195,35 @@ for r in results:
 
 ---
 
+## Real-World Comparison Results
+
+Tested via OpenRouter on a summarization prompt A/B experiment (technical vs plain-English framing), 3 runs each:
+
+| Model | Prompt A Wins | Prompt B Wins | Ties | A Latency | B Latency | A Cost/run | B Cost/run |
+|---|---|---|---|---|---|---|---|
+| `openai/gpt-5.4-nano` | 0 | 3 | 0 | 1,046 ms | 1,197 ms | $0.000020 | $0.000021 |
+| `anthropic/claude-sonnet-4-6` | 0 | 3 | 0 | 3,249 ms | 5,205 ms | $0.000441 | $0.000743 |
+
+**Prompt B** ("plain English") produced longer, more detailed responses on both models, winning by the heuristic judge (word count proxy). GPT-5.4 Nano is 3× faster and 20× cheaper than Claude Sonnet 4.6 for this summarization task.
+
+---
+
 ## Supported models
 
 | Model ID | Provider | API Key Required |
 |----------|----------|-----------------|
 | `mock` | Built-in | No — default for local testing |
+| `openai/gpt-5.4-nano` | OpenRouter | `OPENROUTER_API_KEY` |
+| `anthropic/claude-sonnet-4-6` | OpenRouter | `OPENROUTER_API_KEY` |
+| `google/gemini-2.5-flash` | OpenRouter | `OPENROUTER_API_KEY` |
 | `gpt-4o` | OpenAI | `OPENAI_API_KEY` |
 | `gpt-4o-mini` | OpenAI | `OPENAI_API_KEY` |
 | `gpt-3.5-turbo` | OpenAI | `OPENAI_API_KEY` |
 | `claude-3-5-sonnet-20241022` | Anthropic | `ANTHROPIC_API_KEY` |
 | `claude-3-haiku-20240307` | Anthropic | `ANTHROPIC_API_KEY` |
-| Any OpenAI-compatible model | Custom endpoint | `OPENAI_API_KEY` + `OPENAI_BASE_URL` |
+| Any OpenAI-compatible slug | OpenRouter / custom | `OPENROUTER_API_KEY` or `OPENAI_BASE_URL` |
 
-For local models or other providers, set `OPENAI_BASE_URL` to the base URL and pass the model name as `--model`.
+OpenRouter is recommended — one key routes to any model, including GPT-5.4 Nano, Claude 4.6, and Gemini 2.5 Flash.
 
 ---
 
@@ -204,8 +235,9 @@ All settings can be provided as environment variables or in a `.env` file in the
 
 | Variable | Description |
 |----------|-------------|
-| `OPENAI_API_KEY` | OpenAI API key. |
-| `ANTHROPIC_API_KEY` | Anthropic API key. |
+| `OPENROUTER_API_KEY` | OpenRouter key — enables all model slugs via one key. Takes priority over `OPENAI_API_KEY`. |
+| `OPENAI_API_KEY` | OpenAI API key (direct, no OpenRouter). |
+| `ANTHROPIC_API_KEY` | Anthropic API key (direct, no OpenRouter). |
 | `OPENAI_BASE_URL` | Override the OpenAI API base URL. Default: `https://api.openai.com/v1`. |
 
 ### Defaults
@@ -224,6 +256,9 @@ Override the per-token cost used for cost calculations if pricing changes:
 
 | Variable | Model |
 |----------|-------|
+| `COST_GPT54_NANO` | `openai/gpt-5.4-nano` |
+| `COST_CLAUDE_SONNET_46` | `anthropic/claude-sonnet-4-6` |
+| `COST_GEMINI_FLASH` | `google/gemini-2.5-flash` |
 | `COST_GPT4O` | `gpt-4o` |
 | `COST_GPT4O_MINI` | `gpt-4o-mini` |
 | `COST_GPT35` | `gpt-3.5-turbo` |

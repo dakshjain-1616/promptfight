@@ -19,11 +19,13 @@ from typing import Optional
 # ---------------------------------------------------------------------------
 OPENAI_API_KEY   = os.getenv("OPENAI_API_KEY", "")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 DEFAULT_MODELS   = os.getenv("PROMPTFIGHT_MODELS", "mock").split(",")
 DEFAULT_RUNS     = int(os.getenv("PROMPTFIGHT_RUNS", "3"))
 DEFAULT_FORMAT   = os.getenv("PROMPTFIGHT_FORMAT", "table")   # table | json | csv
 JUDGE_MODEL      = os.getenv("PROMPTFIGHT_JUDGE_MODEL", "")   # blank = heuristic judge
 OPENAI_BASE_URL  = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 ANTHROPIC_VERSION = os.getenv("ANTHROPIC_VERSION", "2023-06-01")
 MAX_TOKENS       = int(os.getenv("PROMPTFIGHT_MAX_TOKENS", "512"))
 
@@ -32,6 +34,10 @@ COST_PER_1K = {
     "gpt-4o":              float(os.getenv("COST_GPT4O",       "0.005")),
     "gpt-4o-mini":         float(os.getenv("COST_GPT4O_MINI",  "0.00015")),
     "gpt-3.5-turbo":       float(os.getenv("COST_GPT35",       "0.002")),
+    "gpt-5.4-nano":        float(os.getenv("COST_GPT54_NANO",  "0.00015")),
+    "openai/gpt-5.4-nano": float(os.getenv("COST_GPT54_NANO",  "0.00015")),
+    "anthropic/claude-sonnet-4-6": float(os.getenv("COST_CLAUDE_SONNET_46", "0.003")),
+    "google/gemini-2.5-flash":     float(os.getenv("COST_GEMINI_FLASH",     "0.0001")),
     "claude-3-5-sonnet-20241022": float(os.getenv("COST_CLAUDE_SONNET", "0.003")),
     "claude-3-haiku-20240307":    float(os.getenv("COST_CLAUDE_HAIKU",  "0.00025")),
     "mock":                0.0,
@@ -76,8 +82,15 @@ class FightResult:
 # ---------------------------------------------------------------------------
 
 def _openai_call(model: str, prompt: str, user_input: str) -> dict:
-    """Call OpenAI chat completions. Returns {text, input_tokens, output_tokens}."""
+    """Call OpenAI-compatible chat completions (OpenAI or OpenRouter). Returns {text, input_tokens, output_tokens}."""
     import urllib.request
+    # Prefer OpenRouter when key is set; it supports all model slugs
+    if OPENROUTER_API_KEY:
+        base_url = OPENROUTER_BASE_URL
+        api_key = OPENROUTER_API_KEY
+    else:
+        base_url = OPENAI_BASE_URL
+        api_key = OPENAI_API_KEY
     filled = prompt.replace("{input}", user_input).replace("{text}", user_input)
     payload = json.dumps({
         "model": model,
@@ -85,11 +98,11 @@ def _openai_call(model: str, prompt: str, user_input: str) -> dict:
         "max_tokens": MAX_TOKENS,
     }).encode()
     req = urllib.request.Request(
-        f"{OPENAI_BASE_URL}/chat/completions",
+        f"{base_url}/chat/completions",
         data=payload,
         headers={
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {OPENAI_API_KEY}",
+            "Authorization": f"Bearer {api_key}",
         },
         method="POST",
     )
@@ -156,6 +169,9 @@ def run_once(model: str, prompt: str, user_input: str, label: str) -> RunResult:
     try:
         if model == "mock":
             raw = _mock_call(model, prompt, user_input, label)
+        elif OPENROUTER_API_KEY and model != "mock":
+            # OpenRouter handles all model slugs via its OpenAI-compatible API
+            raw = _openai_call(model, prompt, user_input)
         elif model.startswith("gpt") or model.startswith("o1") or model.startswith("o3"):
             raw = _openai_call(model, prompt, user_input)
         elif model.startswith("claude"):
