@@ -24,6 +24,15 @@ Calls OpenAI and Anthropic APIs directly via `urllib`. No SDK dependencies at ru
 
 ---
 
+
+## The Problem
+
+Developers often struggle to A/B test LLM prompts efficiently, as existing tools like LangChain require complex setups and dependencies. Without a lightweight solution, comparing prompts statistically becomes cumbersome, leading to reliance on unreliable percentage-based comparisons instead of rigorous statistical tests like Mann-Whitney U or exact binomial tests.
+
+## Who it's for
+
+This is for developers who need a quick, statistically sound way to compare LLM prompts without the overhead of heavy frameworks. For example, a data scientist evaluating prompt variations for a chatbot can use this to determine the best-performing prompt with minimal code.
+
 ## Install
 
 ```bash
