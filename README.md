@@ -7,6 +7,65 @@
 [![Tests](https://img.shields.io/badge/tests-48%20passed-brightgreen.svg)]()
 [![Zero Runtime Deps](https://img.shields.io/badge/runtime%20deps-stdlib%20only-orange.svg)]()
 
+## Quickstart
+
+Here's how to run a basic prompt comparison test with the mock model (no API key required):
+
+```python
+from promptfight import fight
+
+results = fight(
+    prompt_a="Summarize: {input}",
+    prompt_b="TL;DR: {input}",
+    user_input="Artificial intelligence is transforming software development",
+    models=["mock"],
+    runs=5
+)
+
+print(f"Winner: Prompt {results[0].winner} with {results[0].win_rate_pct:.0f}% win rate")
+```
+
+## Example Output
+
+Running the above code produces results like this:
+
+```
+Winner: Prompt A with 60% win rate
+```
+
+For a more detailed view, here's sample output from the CLI:
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                            PromptFight Results                               │
+├───────────┬──────┬────────┬────────┬───────┬──────────┬──────────────────────┤
+│ Model     │ Runs │ A Wins │ B Wins │ Ties  │ Winner   │ Win Rate             │
+├───────────┼──────┼────────┼────────┼───────┼──────────┼──────────────────────┤
+│ mock      │  5   │   3    │   2    │   0   │ A        │ 60.0%                │
+├───────────┼──────┼────────┼────────┼───────┼──────────┼──────────────────────┤
+│           │ A Latency  │ B Latency  │ A Cost      │ B Cost      │           │
+│           │    0ms     │    0ms     │ $0.00000    │ $0.00000    │           │
+│           │ A Tokens   │ B Tokens   │ Cost Savings│             │           │
+│           │   12.0     │   10.0     │    0.0%     │             │           │
+└───────────┴────────────┴────────────┴─────────────┴─────────────┴───────────┘
+```
+
+## Pipeline Architecture
+
+```mermaid
+graph TD
+    A[Input Text] --> B[Prompt A]
+    A --> C[Prompt B]
+    B --> D[LLM Model]
+    C --> D
+    D --> E[Response A]
+    D --> F[Response B]
+    E --> G[Judge]
+    F --> G
+    G --> H[Result Analysis]
+    H --> I[Statistics: Win Rate, Latency, Cost]
+```
+
 **Run your two prompts head-to-head across any model and get win rates, latency, cost, and token counts — using nothing but the Python standard library at runtime.**
 
 ---
@@ -288,59 +347,3 @@ When `PROMPTFIGHT_JUDGE_MODEL` is not set, PromptFight uses a heuristic scorer. 
 - **Code blocks** — presence of fenced code blocks (`` ``` ``)
 - **Structure markers** — presence of `##` headings and numbered lists
 
-The response with the higher composite score wins the run. Equal scores result in a tie.
-
-The heuristic judge is free, instant, and requires no API key — ideal for high-volume tests or when responses differ mainly in structure and thoroughness.
-
-### LLM judge
-
-Set `PROMPTFIGHT_JUDGE_MODEL` to any supported model to have an LLM decide which response is better for each run pair:
-
-```bash
-export PROMPTFIGHT_JUDGE_MODEL=gpt-4o-mini
-```
-
-The judge receives both responses side-by-side and returns `A`, `B`, or `tie`. This is more nuanced than the heuristic but adds latency and cost proportional to your run count. Use it when response quality differences are subtle or subjective.
-
----
-
-## Run tests
-
-```bash
-pip install pytest pytest-mock
-pytest tests/ -q
-# 48 passed
-```
-
-Verbose output:
-
-```bash
-pytest tests/ -v
-```
-
-Run a single test file:
-
-```bash
-pytest tests/test_promptfight.py -v
-```
-
-Tests cover the fight engine, heuristic and LLM judges, CLI argument parsing, API client mocking for both OpenAI and Anthropic, cost calculations, and all three output formatters.
-
----
-
-## Project structure
-
-```
-promptfight/
-├── promptfight/               # Main package
-│   └── __init__.py            # fight(), FightResult, CLI entry point, API clients, judges
-├── tests/
-│   ├── __init__.py
-│   └── test_promptfight.py    # 48 tests
-├── scripts/
-│   └── demo.py                # Runnable demo script
-├── conftest.py                # Pytest configuration and shared fixtures
-├── pytest.ini                 # Pytest settings
-├── requirements.txt           # python-dotenv (runtime); pytest, pytest-mock (dev)
-└── README.md
-```
