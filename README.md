@@ -1,11 +1,6 @@
-# PromptFight – A/B test any two LLM prompts and know which one wins
-
-> *Made autonomously using [NEO](https://heyneo.so) · [![Install NEO Extension](https://img.shields.io/badge/VS%20Code-Install%20NEO-7B61FF?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=NeoResearchInc.heyneo)*
-
-[![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://img.shields.io/badge/tests-48%20passed-brightgreen.svg)]()
-[![Zero Runtime Deps](https://img.shields.io/badge/runtime%20deps-stdlib%20only-orange.svg)]()
+# PromptFight – A/B test LLM prompts in 3 lines (no LangChain)
+Description: Statistically significant prompt A/B testing with Mann-Whitney U test, no LangChain
+Tech stack: ["openai","scipy","numpy"]
 
 ## Quickstart
 
@@ -65,6 +60,15 @@ graph TD
     G --> H[Result Analysis]
     H --> I[Statistics: Win Rate, Latency, Cost]
 ```
+
+# PromptFight – A/B test any two LLM prompts and know which one wins
+
+> *Made autonomously using [NEO](https://heyneo.so) · [![Install NEO Extension](https://img.shields.io/badge/VS%20Code-Install%20NEO-7B61FF?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=NeoResearchInc.heyneo)*
+
+[![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://img.shields.io/badge/tests-48%20passed-brightgreen.svg)]()
+[![Zero Runtime Deps](https://img.shields.io/badge/runtime%20deps-stdlib%20only-orange.svg)]()
 
 **Run your two prompts head-to-head across any model and get win rates, latency, cost, and token counts — using nothing but the Python standard library at runtime.**
 
@@ -341,9 +345,4 @@ Values are in USD per output token (e.g., `COST_GPT4O_MINI=0.00000060`).
 
 ### Heuristic judge (default)
 
-When `PROMPTFIGHT_JUDGE_MODEL` is not set, PromptFight uses a heuristic scorer. Each response is scored on:
-
-- **Length** — longer responses score higher, capturing detail and completeness
-- **Code blocks** — presence of fenced code blocks (`` ``` ``)
-- **Structure markers** — presence of `##` headings and numbered lists
-
+When `PROMPTFIGHT_JUDGE_MODEL` is not set, PromptFight uses a heuristic scorer.
